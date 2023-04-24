@@ -38,7 +38,7 @@ def search():
 @app.route('/api/similarity')
 def similarity():
     id = request.args.get('id')
-    stored_vector = pinecode_index.fetch(ids=["b'Fargo (1996) - Total Silence Scene (3/12) _12'", id])
+    stored_vector = pinecode_index.fetch(ids=[id])
     
     search_response = pinecode_index.query(
         vector=stored_vector.to_dict()['vectors'][id]['values'],
