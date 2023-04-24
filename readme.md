@@ -4,4 +4,4 @@ The goal of this project was to develop a natural language video search engine t
 
 The dataset for this particular tool is roughly ~30,000 scenes from [imdbs top 250 movies](https://www.imdb.com/chart/top/).
 
-[**Demo Can Be Found Here**](https://imdb250.sbal-lm.net/)
+[**Demo Can Be Found Here**]([https://imdb250.sbal-lm.net/](https://ey0b9r093f.execute-api.us-east-1.amazonaws.com))
