@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Natural Language Video Search</title>
+    <style>        
+        #result {
+            display: flex;          
+            margin-top: 20px;            
+            flex-wrap: wrap;
+            padding: 50px;
+        }
+        .search-box {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+        }
+        .movie {            
+            padding: 5px;
+            height: 100%;
+            flex: 1 1 30%;
+            max-width: 200px;
+            color: #1a1a1a;
+            background: rgb(84, 100,102);
+            border-radius: 5px;
+            margin: 10px;
+            height: 550px;
+        }
+
+        .banner, .movie-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .banner-text {
+            width: 60%;
+        }
+
+        @media (max-width: 768px) {
+            .movie {
+                flex-basis: 50%;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="banner">
+        <div class="banner-text">
+            <h1>Natural Language Movie Scene Search Engine</h1>
+            <p>
+            The goal of this project was to develop a natural language video search engine that could effectively search through large quantities of video data without relying on metadata like titles, descriptions, or audio transcriptions. The aim was to enable users to search for specific actions or scenes, such as closing and opening a door, and facilitate the comparison of these scenes across different videos.
+            <br/><br/>
+            The dataset for this particular tool is roughly ~30,000 scenes from <a href="https://www.imdb.com/chart/top/">imdbs top 250 movies</a>.
+            </p>
+    
+            <h2>Features</h2>
+            <ul>
+                <li>Natural Language Search</li>
+                <li>Scene Similarity Search</li>
+            </ul>
+        </div>        
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="query-input" value="A man smoking"></input>
+        <button id="query-button">Submit</button>
+        <button id="surprise-button">Surprise Me!</button>
+    </div>
+    <div class="movie-container">
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function submitSearch(query) {            
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/search?q=" + query);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    document.getElementById("result").innerHTML = response.matches.map(x => {
+                        const poster= x.metadata?.poster.split('@.')
+                        poster[1] = '._SX300_.jpg'
+                        
+                        return `<div class="movie">
+                        <img src="${poster.join('@.')}" width="200" height="350"/>
+                        <h3>${x.metadata.scene_title}</h3>
+                        <h3>(${Math.round(x.metadata.start)}sec-${Math.round(x.metadata.end)}sec) <a target="_blank" href="https://youtu.be/${x.metadata?.index_id}?t=${Math.floor(x.metadata.start)}">View On YouTube</a> </h3>
+                        
+                        <button xattr="${x.id}" onclick="similarScenes(this)">Similar Scenes</button>
+                    </div>`
+                    }).join('')
+                }
+            };
+            xhr.send();
+        }
+
+        function similarScenes(e) {
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "/api/similarity?id=" + e.getAttribute('xattr'));
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    document.getElementById("result").innerHTML = response.matches.map(x => {
+                        const poster= x.metadata?.poster.split('@.')
+                        poster[1] = '._SX300_.jpg'
+                        
+                        return `<div class="movie">
+                        <img src="${poster.join('@.')}" width="200" height="350"/>
+                        <h3>${x.metadata.scene_title}</h3>
+                        <h3>(${Math.round(x.metadata.start)}sec-${Math.round(x.metadata.end)}sec) <a target="_blank" href="https://youtu.be/${x.metadata?.index_id}?t=${Math.floor(x.metadata.start)}">View On YouTube</a> </h3>
+                        
+                        <button xattr="${x.id}" onclick="similarScenes(this)">Similar Scenes</button>
+                    </div>`
+                    }).join('')
+                }
+            };
+            xhr.send();
+        }
+
+        const surpriseQueries = ['crying baby', 'sleeping in bed', 'driving a car', 'man running', 'police chase', 'animals doing animal things']
+        document.getElementById("surprise-button").addEventListener("click", function() {
+            const rnd  = Math.round(Math.random() * surpriseQueries.length)
+            console.log(rnd, Math.random() * surpriseQueries.length, surpriseQueries.length)
+
+            document.getElementById("query-input").value = surpriseQueries[rnd]
+            submitSearch(surpriseQueries[rnd])
+        })
+
+        document.getElementById("query-button").addEventListener("click", function() {
+            const query = document.getElementById("query-input").value;
+            submitSearch(query)
+        });
+    </script>
+</body>
+</html>
